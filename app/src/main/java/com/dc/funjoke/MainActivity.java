@@ -1,27 +1,25 @@
 package com.dc.funjoke;
 
+import android.os.Environment;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.dc.baselibrary.ioc.CheckNet;
-import com.dc.baselibrary.ioc.OnClick;
+import com.dc.baselibrary.fixbug.FixDexManager;
 import com.dc.baselibrary.ioc.ViewById;
 import com.dc.framelibrary.BaseSkinActivity;
-import com.dc.framelibrary.ExceptionCrashHandler;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.IOException;
 
 
 /**
  * @author 43497
  */
-public class MainActivity extends BaseSkinActivity {
+public class MainActivity extends BaseSkinActivity implements View.OnClickListener {
 
     @ViewById(R.id.text_tv)
-    private TextView mTextView;
+    private Button mButton;
 
 
     @Override
@@ -37,7 +35,7 @@ public class MainActivity extends BaseSkinActivity {
 
     @Override
     protected void initView() {
-        mTextView.setText("Android");
+        viewById(R.id.text_tv).setOnClickListener(this);
     }
 
     @Override
@@ -45,7 +43,7 @@ public class MainActivity extends BaseSkinActivity {
 
 
         //获取上次的崩溃信息上传到服务器
-        File crashFile = ExceptionCrashHandler.getInstance().getCrashFile();
+ /*       File crashFile = ExceptionCrashHandler.getInstance().getCrashFile();
         if(crashFile.exists()){
             //上传到服务器
             try {
@@ -60,9 +58,60 @@ public class MainActivity extends BaseSkinActivity {
                 e.printStackTrace();
             }
         }
+        */
+
+        //每次启动时 去后台获取差分包 然后修复本地的Bug
+
+       //aliFixBug();
+
+        fixDexBug();
+
+    }
+
+    /**
+     * 自行修复
+     */
+    private void fixDexBug() {
+        File fixFile = new File(Environment.getExternalStorageDirectory(),"fix.apatch");
+        if (fixFile.exists()){
+            FixDexManager fixDexManager = new FixDexManager(this);
+            try {
+                fixDexManager.fixDex(fixFile.getAbsolutePath());
+                Toast.makeText(this,"修复成功",Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this,"修复失败",Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
 
+    @Override
+    public void onClick(View v) {
+        Toast.makeText(MainActivity.this, "测试" + 2 / 0, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * 阿里修复
+     */
+    private void aliFixBug() {
+
+        //测试 直接获取本地内存卡里面的 fix.apatch
+        File fixFile = new File(Environment.getExternalStorageDirectory(),"fix.apatch");
+        if (fixFile.exists()){
+            //修复bug
+            try {
+                BaseApplication.mPatchManager.addPatch(fixFile.getAbsolutePath());
+                Toast.makeText(this, "修复成功", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "修复失败", Toast.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
+/*
     @OnClick(R.id.text_tv)
     @CheckNet
     public void login(View view) {
@@ -72,5 +121,7 @@ public class MainActivity extends BaseSkinActivity {
     @OnClick(R.id.text_iv)
     private void textIvClick() {
         Toast.makeText(this, "iv+++", Toast.LENGTH_SHORT).show();
-    }
+    }*/
+
+
 }
