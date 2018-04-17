@@ -3,8 +3,8 @@ package com.dc.funjoke;
 import android.app.Application;
 
 import com.alipay.euler.andfix.patch.PatchManager;
+import com.dc.baselibrary.ExceptionCrashHandler;
 import com.dc.baselibrary.fixbug.FixDexManager;
-import com.dc.framelibrary.ExceptionCrashHandler;
 
 /**
  * @author 43497

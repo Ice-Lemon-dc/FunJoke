@@ -1,4 +1,4 @@
-package com.dc.framelibrary;
+package com.dc.baselibrary;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,10 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 异常处理
- *
- * @author 43497
- * @date 2018/4/2
+ * Created by 43497 on 2018/4/17.
  */
 
 public class ExceptionCrashHandler implements Thread.UncaughtExceptionHandler {
