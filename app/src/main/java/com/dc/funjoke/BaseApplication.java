@@ -5,6 +5,8 @@ import android.app.Application;
 import com.alipay.euler.andfix.patch.PatchManager;
 import com.dc.baselibrary.ExceptionCrashHandler;
 import com.dc.baselibrary.fixbug.FixDexManager;
+import com.dc.baselibrary.http.HttpUtils;
+import com.dc.baselibrary.http.OkHttpEngine;
 
 /**
  * @author 43497
@@ -18,6 +20,9 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        //初始化
+        HttpUtils.init(new OkHttpEngine());
 
         ExceptionCrashHandler.getInstance().init(this);
 /*

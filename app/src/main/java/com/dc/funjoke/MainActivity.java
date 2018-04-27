@@ -1,13 +1,18 @@
 package com.dc.funjoke;
 
 import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
 import com.dc.baselibrary.fixbug.FixDexManager;
+import com.dc.baselibrary.http.HttpUtils;
+import com.dc.baselibrary.http.OkHttpEngine;
 import com.dc.baselibrary.ioc.ViewById;
 import com.dc.framelibrary.BaseSkinActivity;
+import com.dc.framelibrary.HttpCallBack;
+import com.dc.framelibrary.mode.DiscoverListResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +71,32 @@ public class MainActivity extends BaseSkinActivity implements View.OnClickListen
 
         fixDexBug();
 
+        HttpUtils.with(this).url("http://is.snssdk.com/2/essay/discovery/v3/?")
+                .addParam("iid","6152551759")
+                .addParam("aid","7")
+                //切换引擎
+                .exchangeEngine(new OkHttpEngine())
+                .get()
+                .execute(new HttpCallBack<DiscoverListResult>() {
+
+                    @Override
+                    public void onError(Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                    @Override
+                    public void onSuccess(DiscoverListResult result) {
+                        Log.e("TAG",result.toString());
+
+                        //取消进度条
+                    }
+
+                    @Override
+                    public void onPreExecute() {
+                        //加载进度条
+                    }
+                });
     }
 
     /**

@@ -2,6 +2,8 @@ package com.dc.baselibrary.http;
 
 import android.content.Context;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,6 +66,12 @@ public class HttpUtils{
             callBack = EngineCallBack.DEFAULT_CALL_BACK;
         }
 
+        // 每次执行都会进入这个方法：这里添加是行不通的
+        // 1.baseLibrary里面这里面不包含业务逻辑
+        // 2.如果有多条业务线，
+        // 让callBack回调去
+        callBack.onPreExecute(mContext,mParams);
+
         if (mType == POST_TYPE){
             post(mContext, mUrl, mParams, callBack);
         }
@@ -84,8 +92,9 @@ public class HttpUtils{
         mhttpEngine = httpEngine;
     }
 
-    public void exchangeEngine(IHttpEngine httpEngine){
+    public HttpUtils exchangeEngine(IHttpEngine httpEngine){
         mhttpEngine = httpEngine;
+        return this;
     }
 
     private void get(Context context, String url, Map<String, Object> params, EngineCallBack callBack) {
@@ -118,5 +127,14 @@ public class HttpUtils{
         System.out.println(sb.toString());
 
         return sb.toString();
+    }
+
+    /**
+     * 解析一个类上面的class信息
+     */
+    public static Class<?> analysisClazzInfo(Object object) {
+        Type genType = object.getClass().getGenericSuperclass();
+        Type[] params = ((ParameterizedType) genType).getActualTypeArguments();
+        return (Class<?>) params[0];
     }
 }
