@@ -1,4 +1,4 @@
-package com.dc.framelibrary.mode;
+package com.dc.funjoke.mode;
 
 import java.util.List;
 

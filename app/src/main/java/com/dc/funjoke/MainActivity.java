@@ -12,7 +12,7 @@ import com.dc.baselibrary.http.OkHttpEngine;
 import com.dc.baselibrary.ioc.ViewById;
 import com.dc.framelibrary.BaseSkinActivity;
 import com.dc.framelibrary.HttpCallBack;
-import com.dc.framelibrary.mode.DiscoverListResult;
+import com.dc.funjoke.mode.DiscoverListResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,13 +67,13 @@ public class MainActivity extends BaseSkinActivity implements View.OnClickListen
 
         //每次启动时 去后台获取差分包 然后修复本地的Bug
 
-       //aliFixBug();
+        //aliFixBug();
 
         fixDexBug();
 
         HttpUtils.with(this).url("http://is.snssdk.com/2/essay/discovery/v3/?")
-                .addParam("iid","6152551759")
-                .addParam("aid","7")
+                .addParam("iid", "6152551759")
+                .addParam("aid", "7")
                 //切换引擎
                 .exchangeEngine(new OkHttpEngine())
                 .get()
@@ -87,7 +87,7 @@ public class MainActivity extends BaseSkinActivity implements View.OnClickListen
 
                     @Override
                     public void onSuccess(DiscoverListResult result) {
-                        Log.e("TAG",result.toString());
+                        Log.e("TAG", result.toString());
 
                         //取消进度条
                     }
@@ -103,15 +103,15 @@ public class MainActivity extends BaseSkinActivity implements View.OnClickListen
      * 自行修复
      */
     private void fixDexBug() {
-        File fixFile = new File(Environment.getExternalStorageDirectory(),"fix.apatch");
-        if (fixFile.exists()){
+        File fixFile = new File(Environment.getExternalStorageDirectory(), "fix.apatch");
+        if (fixFile.exists()) {
             FixDexManager fixDexManager = new FixDexManager(this);
             try {
                 fixDexManager.fixDex(fixFile.getAbsolutePath());
-                Toast.makeText(this,"修复成功",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "修复成功", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                Toast.makeText(this,"修复失败",Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "修复失败", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -128,8 +128,8 @@ public class MainActivity extends BaseSkinActivity implements View.OnClickListen
     private void aliFixBug() {
 
         //测试 直接获取本地内存卡里面的 fix.apatch
-        File fixFile = new File(Environment.getExternalStorageDirectory(),"fix.apatch");
-        if (fixFile.exists()){
+        File fixFile = new File(Environment.getExternalStorageDirectory(), "fix.apatch");
+        if (fixFile.exists()) {
             //修复bug
             try {
                 BaseApplication.mPatchManager.addPatch(fixFile.getAbsolutePath());
