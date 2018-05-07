@@ -39,7 +39,7 @@ public class DaoSupport<T> implements IDaoSupport<T> {
             field.setAccessible(true);
             String name = field.getName();
             String type = field.getType().getSimpleName();
-            stringBuilder.append(name).append(DaoUtils.getColumnType(type)).append(" ,");
+            stringBuilder.append(name).append(DaoUtils.getColumnType(type)).append(", ");
         }
 
         stringBuilder.replace(stringBuilder.length() - 2, stringBuilder.length(), ")");
