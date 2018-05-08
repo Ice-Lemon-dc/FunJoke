@@ -2,6 +2,8 @@ package com.dc.framelibrary.db;
 
 import android.database.sqlite.SQLiteDatabase;
 
+import com.dc.framelibrary.db.curd.QuerySupport;
+
 import java.util.List;
 
 /**
@@ -10,9 +12,36 @@ import java.util.List;
 
 public interface IDaoSupport<T> {
 
-    void init(SQLiteDatabase sqLiteDatabase, Class<T>clazz);
+    /***
+     *插入数据
+     */
+    long insert(T t);
 
-    long  insert(T t);
+    void init(SQLiteDatabase sqliteDatabase, Class<T> clazz);
 
-    void insert(List<T> datas);
+    void insertList(List<T> datas);
+
+    /**
+     * 获取专门查询的支持类
+     * @return
+     */
+    QuerySupport<T> querySupport();
+
+    /**
+     * 删除
+     * @param whereClause where语句
+     * @param whereArgs where语句中的参数
+     * @return
+     */
+    int delete(String whereClause, String... whereArgs);
+
+    /**
+     * 修改
+     * @param obj 表对应的对象
+     * @param whereClause  where语句
+     * @param whereArgs where语句中的参数
+     * @return
+     */
+    int update(T obj, String whereClause, String... whereArgs);
+
 }

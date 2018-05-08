@@ -3,7 +3,11 @@ package com.dc.framelibrary.db;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 import android.util.ArrayMap;
+import android.util.Log;
+
+import com.dc.framelibrary.db.curd.QuerySupport;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,98 +19,173 @@ import java.util.Map;
  */
 
 public class DaoSupport<T> implements IDaoSupport<T> {
+    // SQLiteDatabase
+    private SQLiteDatabase mSqLiteDatabase;
+    // 泛型类
+    private Class<T> mClazz;
 
-    private SQLiteDatabase mSQLiteDatabase;
-    private Class<T> mClass;
+
+
+    private String TAG = "DaoSupport";
 
     private static final Object[] mPutMethodArgs = new Object[2];
+
     @SuppressLint("NewApi")
-    private static final Map<String, Method> mPutMethods = new ArrayMap<>();
+    private static final Map<String, Method> mPutMethods
+            = new ArrayMap<>();
 
     @Override
     public void init(SQLiteDatabase sqLiteDatabase, Class<T> clazz) {
-        mSQLiteDatabase = sqLiteDatabase;
-        mClass = clazz;
+        this.mSqLiteDatabase = sqLiteDatabase;
+        this.mClazz = clazz;
 
+        // 创建表
+        /*"create table if not exists Person ("
+                + "id integer primary key autoincrement, "
+                + "name text, "
+                + "age integer, "
+                + "flag boolean)";*/
 
-        StringBuilder stringBuilder = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
 
-        stringBuilder.append("create table if not exists ").append(DaoUtils.getTableName(mClass)).append("(id integer primary key " +
-                "autoincrement, ");
+        sb.append("create table if not exists ")
+                .append(DaoUtil.getTableName(mClazz))
+                .append("(id integer primary key autoincrement, ");
 
-        Field[] fields = mClass.getDeclaredFields();
+        Field[] fields = mClazz.getDeclaredFields();
         for (Field field : fields) {
-            field.setAccessible(true);
+            field.setAccessible(true);// 设置权限
             String name = field.getName();
-            String type = field.getType().getSimpleName();
-            stringBuilder.append(name).append(DaoUtils.getColumnType(type)).append(", ");
+
+            if(!DaoUtil.checkFiled(name))//如果在排除的字段条件范围内 就跳过
+                continue;
+
+            String type = field.getType().getSimpleName();// int String boolean
+            //  type需要进行转换 int --> integer, String text;
+            String dbType = DaoUtil.getColumnType(type);
+            if (!TextUtils.isEmpty(dbType)) {
+                sb.append(name).append(dbType).append(", ");
+            }
         }
 
-        stringBuilder.replace(stringBuilder.length() - 2, stringBuilder.length(), ")");
+        sb.replace(sb.length() - 2, sb.length(), ")");
 
-        String createSq = stringBuilder.toString();
+        String createTableSql = sb.toString();
 
-        mSQLiteDatabase.execSQL(createSq);
+        Log.e(TAG, "表语句--> " + createTableSql);
 
+        // 创建表
+        mSqLiteDatabase.execSQL(createTableSql);
+    }
+
+
+    // 插入数据库 t 是任意对象
+    @Override
+    public long insert(T obj) {
+        /*ContentValues values = new ContentValues();
+        values.put("name",person.getName());
+        values.put("age",person.getAge());
+        values.put("flag",person.getFlag());
+        db.insert("Person",null,values);*/
+
+
+        // 使用的其实还是  原生的使用方式，只是我们是封装一下而已
+        ContentValues values = contentValuesByObj(obj);
+
+        // null  速度比第三方的快一倍左右
+        return mSqLiteDatabase.insert(DaoUtil.getTableName(mClazz), null, values);
     }
 
     @Override
-    public void insert(List<T> datas) {
-        mSQLiteDatabase.beginTransaction();
+    public void insertList(List<T> datas) {
+        // 批量插入采用 事物  节约时间
+        mSqLiteDatabase.beginTransaction();
         for (T data : datas) {
+            // 调用单条插入
             insert(data);
         }
-
-        mSQLiteDatabase.setTransactionSuccessful();
-        mSQLiteDatabase.endTransaction();
+        mSqLiteDatabase.setTransactionSuccessful();
+        mSqLiteDatabase.endTransaction();
     }
 
+    private QuerySupport<T> mQuerySupport;
 
     @Override
-    public long insert(T o) {
-        ContentValues contentValues = contentValueByObj(o);
-
-        return mSQLiteDatabase.insert(DaoUtils.getTableName(mClass), null, contentValues);
+    public QuerySupport<T> querySupport() {
+        if (mQuerySupport == null) {
+            mQuerySupport = new QuerySupport<>(mSqLiteDatabase, mClazz);
+        }
+        return mQuerySupport;
     }
 
-    private ContentValues contentValueByObj(T t) {
+
+    // obj 转成 ContentValues
+    private ContentValues contentValuesByObj(T obj) {
+        // 第三方的 使用比对一下 了解一下源码
         ContentValues values = new ContentValues();
 
-        Field[] fields = t.getClass().getDeclaredFields();
+        // 封装values
+        Field[] fields = mClazz.getDeclaredFields();
+
         for (Field field : fields) {
             try {
+                // 设置权限，私有和共有都可以访问
                 field.setAccessible(true);
-
                 String key = field.getName();
-                Object value = field.get(t);
-                if (value==null){
+                if(!DaoUtil.checkFiled(key))//如果在排除的字段条件范围内 就跳过
                     continue;
-                }
+
+                // 获取value
+                Object value = field.get(obj);
+                // put 第二个参数是类型  把它转换
 
                 mPutMethodArgs[0] = key;
                 mPutMethodArgs[1] = value;
 
-                String fieldTypeName = field.getType().getName();
-                Method putMethod = mPutMethods.get(fieldTypeName);
+                // 方法使用反射 ， 反射在一定程度上会影响性能
+                // 源码里面  activity实例 反射  View创建反射
+                // 第三方以及是源码给我们提供的是最好的学习教材   插件换肤
 
+                String filedTypeName = field.getType().getName();
+                // 还是使用反射  获取方法  put  缓存方法
+                Method putMethod = mPutMethods.get(filedTypeName);
                 if (putMethod == null) {
-                    putMethod = ContentValues.class.getDeclaredMethod("put", String.class, value.getClass());
-
-                    mPutMethods.put(fieldTypeName, putMethod);
+                    putMethod = ContentValues.class.getDeclaredMethod("put",
+                            String.class, value.getClass());
+                    mPutMethods.put(filedTypeName, putMethod);
                 }
-                putMethod.invoke(values, key, value);
 
+                // 通过反射执行
+                putMethod.invoke(values, mPutMethodArgs);
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
                 mPutMethodArgs[0] = null;
                 mPutMethodArgs[1] = null;
             }
-
         }
-
-
         return values;
     }
 
+    /**
+     * 删除
+     */
+    @Override
+    public synchronized int delete(String whereClause, String[] whereArgs) {
+        return mSqLiteDatabase.delete(DaoUtil.getTableName(mClazz), whereClause, whereArgs);
+    }
+
+    /**
+     * 更新  这些你需要对  最原始的写法比较明了 extends
+     */
+    @Override
+    public int update(T obj, String whereClause, String... whereArgs) {
+        ContentValues values = contentValuesByObj(obj);
+        return mSqLiteDatabase.update(DaoUtil.getTableName(mClazz),
+                values, whereClause, whereArgs);
+    }
+
+    // 结合到
+    // 1. 网络引擎的缓存
+    // 2. 资源加载的源码NDK
 }
