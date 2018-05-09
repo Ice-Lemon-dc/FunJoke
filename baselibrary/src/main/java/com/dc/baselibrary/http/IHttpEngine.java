@@ -6,30 +6,32 @@ import java.util.Map;
 
 /**
  * 引擎的规范
+ *
  * @author 43497
  * @date 2018/4/19
  */
 
 public interface IHttpEngine {
 
-    /**
+    /***
      * get请求
+     * @param isCache 是否进行缓存和先调用缓存的数据
      * @param context
      * @param url
      * @param params
-     * @param callBack
+     * @param callback
      */
-    void get(Context context, String url, Map<String,Object> params, EngineCallBack callBack);
+    void get(boolean isCache, Context context, String url, Map<String, Object> params, EngineCallBack callback);
 
-    /**
+    /***
      * post请求
+     * @param isCache 是否进行缓存和先调用缓存的数据
      * @param context
      * @param url
      * @param params
-     * @param callBack
+     * @param callback
      */
-    void post(Context context, String url, Map<String,Object> params, EngineCallBack callBack);
-
+    void post(boolean isCache, Context context, String url, Map<String, Object> params, EngineCallBack callback);
 
     //下载文件
 

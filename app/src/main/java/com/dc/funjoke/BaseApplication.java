@@ -6,7 +6,7 @@ import com.alipay.euler.andfix.patch.PatchManager;
 import com.dc.baselibrary.ExceptionCrashHandler;
 import com.dc.baselibrary.fixbug.FixDexManager;
 import com.dc.baselibrary.http.HttpUtils;
-import com.dc.baselibrary.http.OkHttpEngine;
+import com.dc.framelibrary.http.okhttp.OkHttpEngine;
 
 /**
  * @author 43497

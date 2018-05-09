@@ -8,10 +8,10 @@ import android.widget.Toast;
 
 import com.dc.baselibrary.fixbug.FixDexManager;
 import com.dc.baselibrary.http.HttpUtils;
-import com.dc.baselibrary.http.OkHttpEngine;
 import com.dc.baselibrary.ioc.ViewById;
 import com.dc.framelibrary.BaseSkinActivity;
-import com.dc.framelibrary.HttpCallBack;
+import com.dc.framelibrary.http.HttpCallBack;
+import com.dc.framelibrary.http.okhttp.OkHttpEngine;
 import com.dc.funjoke.mode.DiscoverListResult;
 
 import java.io.File;
